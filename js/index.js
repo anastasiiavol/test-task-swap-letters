@@ -1,78 +1,81 @@
-/*
 const inputText = document.querySelector('#inputText')
 const btnSubmit = document.querySelector('#btnSubmit')
 const infoForm = document.querySelector('form')
 const newNodeWithInputText = document.createElement('div')
 
-var letters = []
+class DynamicLetters {
+  constructor(
+    inputText,
+    btnSubmit
+  ) {
+    this.letters = [];
 
-btnSubmit.addEventListener('click', (e) => {
-  e.preventDefault();
-  letters.concat(addInputTextToPage());
-});
-
-function addSpanForEveryLetter(e, textFromInput) {
-  let letters=[];
-  let fragmentSpan = document.createDocumentFragment();
-  textFromInput.forEach(letter => {
-    let nodeWithLetter = document.createElement('span');
-    nodeWithLetter.innerText = letter;
-    letters.push(nodeWithLetter)
-    fragmentSpan.appendChild(nodeWithLetter);
-    moveSelectedSymbol(e, nodeWithLetter);
-  })
-  e.appendChild(fragmentSpan);
-  return letters;
-}
-
-function addInputTextToPage() {
-  let fragmentCanvas = document.createDocumentFragment();
-  let lettersLength = letters.length;
-  for(let i = 0; i < lettersLength; i++){
-    let letter = letters.pop()
-    console.log("letter")
-    console.log(letter)
-    letter.remove();
+    btnSubmit.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.addInputTextToPage();
+    });
   }
 
-  let splitText = inputText.value.split('');
-  splitText.value = '';
-  newNodeWithInputText.classList.add('canvas');
-  fragmentCanvas.appendChild(newNodeWithInputText);
-  infoForm.appendChild(fragmentCanvas);
-  return addSpanForEveryLetter(newNodeWithInputText, splitText)
-/!*
-  let bodyChildren = document.body.children;
-  deleteNextSiblingElement([...bodyChildren])*!/
+  addInputTextToPage() {
+    let fragmentCanvas = document.createDocumentFragment();
+    this.removeAllLetters();
+    let splitText = inputText.value.split('');
+    splitText.value = '';
+    newNodeWithInputText.classList.add('canvas');
+    fragmentCanvas.appendChild(newNodeWithInputText);
+    infoForm.appendChild(fragmentCanvas);
+    this.addSpanForEveryLetter(newNodeWithInputText, splitText)
+  }
+
+  removeAllLetters() {
+    let lettersLength = this.letters.length;
+    for (let i = 0; i < lettersLength; i++) {
+      let letter = this.letters.pop()
+      letter.remove();
+    }
+  }
+  addSpanForEveryLetter(e, textFromInput) {
+    let fragmentSpan = document.createDocumentFragment();
+    let width = 0;
+    let computedFontSize = parseInt(window.getComputedStyle(document.getElementById("inputText")).fontSize) + 5;
+    console.log(computedFontSize)
+    console.log("computedFontSize")
+    textFromInput.forEach(letter => {
+      let nodeWithLetter = document.createElement('span');
+      // nodeWithLetter.classList.add('spanAfterMove');
+      nodeWithLetter.style.position = 'absolute';
+      nodeWithLetter.style.left = width + 'px';
+      nodeWithLetter.innerText = letter;
+      fragmentSpan.appendChild(nodeWithLetter);
+      this.moveSelectedSymbol(e, nodeWithLetter);
+      this.letters.push(nodeWithLetter)
+      width += computedFontSize;
+    })
+    e.appendChild(fragmentSpan);
+  }
+
+
+  moveSelectedSymbol(canvasContainer, e) {
+    e.addEventListener('click', e => {
+      let letter = e.target;
+      letter.classList.add('spanAfterMove');
+      let canvas = document.querySelector('.canvas');
+      let offsetXCanvas = canvas.offsetLeft;
+      let offsetYCanvas = canvas.offsetTop;
+
+      let onMouseMoveListener = (e) => {
+        letter.style.left = `${e.x - offsetXCanvas}px`;
+        letter.style.top = `${e.y - offsetYCanvas}px`;
+      }
+      canvas.addEventListener('mousemove', onMouseMoveListener, false);
+
+      canvasContainer.addEventListener('click', (e) => {
+        if (e.target.nodeName === 'DIV') {
+          canvas.removeEventListener('mousemove', onMouseMoveListener, false)
+        }
+      });
+    })
+  }
 }
 
-/!*function deleteNextSiblingElement(elements) {
-  elements.forEach(element => {
-    const nextDivDesc = element.nextElementSibling;
-    if (element.nodeName === 'DIV' && element.className === 'canvas' && nextDivDesc !== null) {
-      nextDivDesc.remove();
-    }
-  })
-}*!/
-
-function moveSelectedSymbol(canvasContainer, e) {
-  e.addEventListener('click', e => {
-    let letter = e.target;
-    letter.classList.add('spanAfterMove');
-    let canvas = document.querySelector('.canvas');
-    let offsetXCanvas = canvas.offsetLeft;
-    let offsetYCanvas = canvas.offsetTop;
-
-    let listener = (e) => {
-      letter.style.left = `${e.x - offsetXCanvas}px`;
-      letter.style.top = `${e.y - offsetYCanvas}px`;
-    }
-    canvas.addEventListener('mousemove', listener, false);
-
-    canvasContainer.addEventListener('click', (e) => {
-      if (e.target.nodeName === 'DIV') {
-        canvas.removeEventListener('mousemove', listener, false)
-      }
-    });
-  })
-}*/
+let dynamicLetters = new DynamicLetters(inputText, btnSubmit, infoForm, newNodeWithInputText)
